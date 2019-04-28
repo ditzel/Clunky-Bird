@@ -20,6 +20,16 @@ public class Bird : MonoBehaviour
     protected Collider Collider;
     protected ParticleSystem Partical;
     protected Blood[] Bloods;
+    public static List<Bird> AllBirds = new List<Bird>();
+
+    public GameManager GameManager;
+
+    protected bool Quit = false;
+
+    private void Awake()
+    {
+        AllBirds.Add(this);
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -30,6 +40,7 @@ public class Bird : MonoBehaviour
         Bloods = GetComponentsInChildren<Blood>();
         for (int i = 0; i < Bloods.Length; i++)
             Bloods[i].gameObject.SetActive(false);
+        GameManager = FindObjectOfType<GameManager>();
     }
 
     // Update is called once per frame
@@ -43,16 +54,27 @@ public class Bird : MonoBehaviour
         }
     }
 
-    private void OnMouseOver()
+    public void SetDead()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Collider.enabled = false;
-            Mesh.enabled = false;
-            Partical.Play();
-            for (int i = 0; i < Bloods.Length; i++)
-                Bloods[i].gameObject.SetActive(true);
-            CameraEffects.ShakeOnce(0.5f);
-        }
+        Collider.enabled = false;
+        Mesh.enabled = false;
+        Partical.Play();
+        for (int i = 0; i < Bloods.Length; i++)
+            Bloods[i].gameObject.SetActive(true);
+        AllBirds.Remove(this);
+    }
+
+    private void OnApplicationQuit()
+    {
+        Quit = true;
+    }
+
+    private void OnDestroy()
+    {
+        if (Quit || !AllBirds.Contains(this))
+            return;
+
+        AllBirds.Remove(this);
+        GameManager.BirdMiss();
     }
 }

@@ -78,7 +78,6 @@ public class GameManager : MonoBehaviour
     public bool InMenu;
 
     protected BirdSpawner BirdSpawner;
-    protected bool Reloading;
     protected float NextReload;
 
     public PostProcessVolume MenuPP;
@@ -110,7 +109,6 @@ public class GameManager : MonoBehaviour
     {
         InMenu = false;
         NextReload = 0;
-        Reloading = false;
         Stats.Level  = 1;
         Stats.Bomb   = Powers.Bomb;
         Stats.Heart  = Powers.Heart;
@@ -151,14 +149,14 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(0))
             {
-                Reloading = false;
                 if (Stats.Sheels == 0)
                 {
                     AudioSource.PlayClipAtPoint(ClickAudio, transform.position);
                 }
                 else
                 {
-
+                    if (Stats.Sheels == Powers.Shells)
+                        NextReload = 2f / (Powers.FastReload + 1);
                     var hits = Physics.RaycastAll(Camera.ScreenPointToRay(Input.mousePosition));
                     var birdHit = false;
                     for (var i = 0; i < hits.Length; i++)
@@ -198,37 +196,27 @@ public class GameManager : MonoBehaviour
                 UpdateGameUI();
             }
 
-            if (Input.GetMouseButtonDown(1) && !Reloading && Stats.Sheels <= Powers.Shells)
-            {
-                //Stats.Sheels = Powers.Shells;
-                Reloading = true;
-                AudioSource.PlayClipAtPoint(ReloadAudio, transform.position);
-                UpdateGameUI();
-            }
+            Reload();
         }
 
-
-        if (Reloading)
-            Reload();
     }
 
     private void Reload()
     {
 
-            if (NextReload > 0)
+        if (NextReload > 0)
         {
             NextReload -= Time.deltaTime;
             return;
         }
 
+        if (Stats.Sheels == Powers.Shells)
+            return;
+
+        AudioSource.PlayClipAtPoint(ReloadAudio, transform.position);
         Stats.Sheels++;
         NextReload = 1f / (Powers.FastReload + 1);
         UpdateGameUI();
-
-        if (Stats.Sheels == Powers.Shells)
-            Reloading = false;
-        else
-            AudioSource.PlayClipAtPoint(ReloadAudio, transform.position);
 
     }
 
